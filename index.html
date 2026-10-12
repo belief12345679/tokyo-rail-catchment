@@ -156,118 +156,85 @@ canvas{display:block;width:100%;height:100%;cursor:crosshair}
   <div class="note">
     <!-- ======================= English ======================= -->
     <div class="en">
-    <p><b>About this map</b><br>Each railway line in the Tokyo metropolitan area is shown with its
-      <b>rail line catchment area (RLCA)</b>: the set of 1 km grid cells in which the commuters
-      who use that line live or work. A commuter is counted as a user of a line when the line
-      carries at least a given share (1%, 10% or 30%, switchable in the table) of their shortest
-      railway route. One cell is 1 km&sup2;, so the area equals the cell count.
-      Companion page of: Y.&nbsp;Y. Zheng, E. Viegas, H. Takayasu and M. Takayasu, &ldquo;A novel
-      approach to assess the long-term changes to population demographics due to large
-      infrastructure projects: The Shin-Yokohama Line case in Japan,&rdquo; 2026.</p>
-    <p><b>How to cite</b><br>
-      <span class="cite">Y. Y. Zheng, "Rail line catchment areas of the Tokyo metropolitan rail network," interactive map, Institute of Science Tokyo, 2026. [Online]. Available: https://YOUR-USERNAME.github.io/tokyo-rail-catchment/</span>
-      Code and data: see the repository linked above. Underlying GPS data are provided by Agoop Corp.\ and
-      cannot be redistributed; the page ships only aggregated 1 km cell masks and line statistics.</p>
-    <p><b>Years</b><br>2022 / 2023 switches the network <b>and</b> the commuters together:
-      2022 is the network before the Shin-Yokohama Line opened (18 March 2023) with 2022
-      commuting data; 2023 is the network after the opening with 2023 data. It is not the same
-      people routed on two networks. The Shin-Yokohama Line appears only in 2023; its 2019
-      section (Nishiya&ndash;Hazawa Yokohama-kokudai) appears only in 2022.</p>
-    <p><b>Commuters included</b><br>Weekday commutes of that year, origin&ndash;destination pairs with
-      at least 5 person-days per year, straight-line distance under 60 km. Trips whose rail route
-      exceeds 70 km and more than twice the straight-line distance are treated as non-rail and
-      dropped (e.g. across Tokyo Bay; 0.14% of all flow).</p>
-    <p><b>Cell processing</b><br>Two variants. <b>Dilated</b>: cells on the routes are grown by one
-      cell, interior holes filled, largest connected component kept. <b>Tight</b>: no growth and
-      no filling, largest connected component of the cells actually traversed. Routes are 1&ndash;2
-      cells wide, so dilation roughly triples the width and doubles the median area (tight is 48%
-      of dilated at the median). Dilation joins fragments (median 10 per line) at the cost of
-      including cells nobody traverses.</p>
-    <p><b>Time criterion</b><br>Only trips that would become longer without the line are counted
-      (more than 1,000 m of generalised distance in the routing model, about 100 s at 36 km/h).</p>
-    <p><b>Centres of flow</b><br>Net inflow is accumulated per 1 km cell but <b>read within a
-      1.4 km disc</b>, because the grid is a national reference grid and whether a business
-      district falls in one cell or several is accidental. Flows inside the disc cancel, so the
-      value is the <b>surplus entering from outside</b>. The second centre is the best disc at
-      least 3.5 km from the first. The disc is named after its <b>largest station</b> within a
-      1.6 km radius, chosen by: transfer station (most lines) &rarr; name without an operator
-      prefix &rarr; station size (only if the ratio exceeds 1.5) &rarr; workplace population of
-      the cell &rarr; network centrality. Hovering the name lists all stations covered.</p>
-    <p><b>Shares</b><br>Area share is over all 1 km cells of the region; station share over all
-      stations; flow share over all weekday commuting of the region. Flow is person-days from a
-      smartphone panel, not a head count, so only shares are shown.</p>
-    <p><b>Reading the map</b><br>Routes are counted over the <b>whole journey</b>, so long trips
-      stretch a catchment to the far side. Long lines reach a given share more easily; raising
-      the threshold shrinks short lines systematically. Compare lines of different length at
-      several thresholds.</p>
-    <p>Through services are treated as one transfer. Shinkansen is excluded. A station is a set of
-      platforms, one per line; when a line is removed its passengers move to the remaining
-      platforms. Lines entirely replaced by a parallel line (no trip becomes longer without them)
-      are omitted for that year. Sections registered under separate names but served by the same
-      through train are merged (e.g. T&#333;ky&#363;&ndash;S&#333;tetsu Shin-Yokohama Line,
-      Hokus&#333;&ndash;Narita Airport Line).</p>
-    <p><b>Data</b><br>GPS: Agoop Corp.\ point-type people flow data, 2022&ndash;2023. Rail network:
-      MLIT National Land Numerical Information N02. Grid: Statistics Bureau of Japan standard
-      1 km grid. &copy; 2026 Yixuan Y. Zheng, Institute of Science Tokyo.</p>
+    <p><b>What this page shows</b><br>Each railway line in the Tokyo metropolitan area is shown with its
+      rail line catchment area (RLCA): the 1 km grid cells where the commuters who use the line live or work.
+      The catchment is computed from one year of smartphone GPS commuting data (Agoop Corp.) and the rail
+      network of that year. Companion page of Zheng, Viegas, Takayasu and Takayasu (2026),
+      <i>Long-term demographic change due to large infrastructure projects: The Shin-Yokohama Line case in Japan</i>.</p>
+    <p><b>Line header</b><br>Under the line name: its length in km; <b>area share</b>, the catchment as a
+      percentage of all 1 km cells in the region; and <b>flow share</b>, the commuters who use the line as a
+      percentage of all weekday commuters in the region. Flow is counted in person-days from the GPS panel,
+      not in people, so only shares are shown.</p>
+    <p><b>Catchment km&sup2; and the 1% / 10% / 30% columns</b><br>One cell is 1 km&sup2;, so the number is
+      the cell count. The three columns are three rules for who counts as a user of the line: the line must
+      carry at least 1%, 10% or 30% of the length of that person's shortest rail route. A stricter rule gives
+      a smaller catchment. Click a column to redraw the map. 10% is the default and the rule used in the paper.</p>
+    <p><b>Stations in catchment</b><br>The number of stations inside the catchment, and that number as a
+      percentage of all 1,549 stations in the region.</p>
+    <p><b>Centres of flow</b><br>Where the line's commuters are going. For every cell we count the commuters
+      arriving minus those leaving, add this up within a 1.4 km disc, and report the two discs with the
+      largest net inflow. The value is in <b>person-days</b>: the surplus entering the disc from outside
+      over the year. Each disc is named after its largest station ("around Shinjuku"); hover the name to see
+      all stations it covers. The distance is from Tokyo Station.</p>
+    <p><b>Red line</b><br>The number of trips that could not be made by rail at all if this line were
+      removed, for example a branch line that is the only rail access to its area.</p>
+    <p><b>The list</b><br>Every line of the chosen year, with its catchment in km&sup2; (the big number),
+      its length, and its flow share. Sort by the tabs; type to search. Click a line in the list or on the
+      map to select it.</p>
+    <p><b>2022 / 2023</b><br>2022 is the network before the Shin-Yokohama Line opened (18 March 2023) with
+      2022 commuters; 2023 is the network after, with 2023 commuters. It is not the same people routed on two
+      networks. The Shin-Yokohama Line appears only in 2023; its 2019 section (Nishiya&ndash;Hazawa
+      Yokohama-kokudai) only in 2022.</p>
+    <p><b>Dilated / Tight</b><br>Two ways of drawing the same catchment. <b>Dilated</b> grows the traversed
+      cells by one cell and fills interior holes, which joins scattered fragments into one area;
+      <b>Tight</b> keeps only the cells actually traversed. Dilated is roughly twice the area of tight.
+      Both keep only the largest connected component. The paper uses the dilated version.</p>
+    <p><b>Fine print</b><br>Weekday commutes with at least 5 person-days per origin&ndash;destination pair
+      and under 60 km straight-line distance. Through services count as one transfer; Shinkansen excluded.
+      Only trips that would become longer without the line (by more than 1,000 m of generalised distance)
+      are attributed to it. Lines fully replaced by a parallel line are omitted for that year.</p>
+    <p><b>Cite as</b><br>
+      <span class="cite">Y. Y. Zheng, "Rail line catchment areas of the Tokyo metropolitan rail network," interactive map, Institute of Science Tokyo, 2026. [Online]. Available: https://belief12345679.github.io/tokyo-rail-catchment/</span>
+      Data: Agoop Corp. (GPS, not redistributable; this page holds only aggregated cell masks), MLIT N02 (rail
+      network), Statistics Bureau of Japan (1 km grid). &copy; 2026 Yixuan Y. Zheng.</p>
     </div>
 
     <!-- ======================= 日本語 ======================= -->
     <div class="ja">
-    <p><b>このページについて</b><br>首都圏の各路線について、その路線を使う通勤者の
-      住む・働く 1 km メッシュの集合＝<b>路線流域（RLCA）</b>を示します。
-      通勤の最短経路のうち、この路線が全行程の一定割合以上（1%・10%・30%、表のボタンで切替）
-      を占める移動をその路線の利用者とみなします。1 メッシュ = 1 km&sup2; なので面積はメッシュ数です。
-      論文 Y.&nbsp;Y. Zheng, E. Viegas, H. Takayasu, M. Takayasu, &ldquo;A novel approach to assess
-      the long-term changes to population demographics due to large infrastructure projects:
-      The Shin-Yokohama Line case in Japan,&rdquo; 2026 の付属ページです。</p>
+    <p><b>このページ</b><br>首都圏の各路線について、その路線を使う通勤者が住む・働く 1 km メッシュの集合＝
+      路線流域（RLCA）を示します。1 年分の携帯 GPS 通勤データ（Agoop 社）とその年の路線網から計算しています。
+      論文 Zheng, Viegas, Takayasu, Takayasu (2026) <i>Long-term demographic change due to large infrastructure
+      projects: The Shin-Yokohama Line case in Japan</i> の付属ページです。</p>
+    <p><b>路線見出し</b><br>路線名の下に、路線長 km、<b>面積シェア</b>（流域が首都圏の全 1 km メッシュに占める割合）、
+      <b>人流量シェア</b>（この路線の利用者が首都圏の平日通勤者全体に占める割合）。人流量は GPS パネルの延べ人日で
+      実人数ではないため、割合のみ示します。</p>
+    <p><b>流域面積 km&sup2; と 1%・10%・30% の列</b><br>1 メッシュ = 1 km&sup2; なので、数字はメッシュ数です。
+      3 列は「誰をこの路線の利用者とみなすか」の 3 通りの基準で、最短鉄道経路の長さのうちこの路線が 1%・10%・30%
+      以上を占める人。基準を厳しくすると流域は小さくなります。列をクリックすると地図が切り替わります。
+      既定は 10% で、論文もこれを使っています。</p>
+    <p><b>流域内の駅</b><br>流域に含まれる駅の数と、首都圏の全 1,549 駅に対する割合。</p>
+    <p><b>流動の重心</b><br>この路線の利用者がどこへ向かうか。メッシュごとに「到着 − 出発」を数え、半径 1.4 km の円で
+      足し合わせ、純流入が最大の円を 2 つ示します。値は<b>人日</b>で、1 年間に円の外から入ってくる超過分です。
+      円はその中で最大の駅の名で呼び（「新宿周辺」）、名前にカーソルを合わせると円内の全駅が出ます。距離は東京駅からです。</p>
+    <p><b>赤い行</b><br>この路線を取り除くと鉄道では行けなくなる移動の件数。その地域への唯一の鉄道アクセスである
+      支線などで大きくなります。</p>
+    <p><b>一覧</b><br>その年の全路線。大きい数字は流域面積 km&sup2;、下に路線長と人流量シェア。タブで並べ替え、
+      入力で検索。一覧または地図上の路線をクリックすると選択されます。</p>
+    <p><b>2022 / 2023</b><br>2022 は新横浜線開業（2023-03-18）前の路線網に 2022 年の通勤者、2023 は開業後の路線網に
+      2023 年の通勤者。同じ人を二つの路線網で走らせた比較ではありません。新横浜線は 2023 年にのみ、
+      その 2019 年開業区間（西谷 – 羽沢横浜国大）は 2022 年にのみ現れます。</p>
+    <p><b>膨張あり／膨張なし</b><br>同じ流域の 2 通りの描き方。<b>膨張あり</b>は通ったセルを 1 セル膨張させ内側の穴を
+      埋め、ばらけた断片を一つの面にします。<b>膨張なし</b>は実際に通ったセルのみ。膨張ありは膨張なしのおよそ 2 倍の
+      面積になります。どちらも最大連結成分のみ残します。論文は膨張ありを使っています。</p>
+    <p><b>細則</b><br>平日通勤、同じ出発地・目的地の組で年 5 人日以上、直線距離 60 km 未満。直通運転は乗換 1 回
+      扱い、新幹線は対象外。この路線が無いと一般化距離で 1,000 m 超遠回りになる移動のみをその路線に帰属させます。
+      並行路線に完全に代替される路線はその年の一覧から除きます。</p>
     <p><b>引用</b><br>
-      <span class="cite">Y. Y. Zheng, "Rail line catchment areas of the Tokyo metropolitan rail network," interactive map, Institute of Science Tokyo, 2026. [Online]. Available: https://YOUR-USERNAME.github.io/tokyo-rail-catchment/</span>
-      元の GPS データは Agoop 社提供で再配布できません。本ページには 1 km メッシュ単位の
-      集計マスクと路線統計のみを含みます。</p>
-    <p><b>年の切り替え</b><br>右上の 2022 / 2023 は、路線網と通勤者を<b>同時に</b>切り替えます。
-      2022 は 2023-03-18 の新横浜線開業<b>前</b>の路線網に 2022 年の通勤データ、
-      2023 は開業後の路線網に 2023 年の通勤データ。
-      同じ人を二つの路線網で走らせた比較ではありません。
-      新横浜線は 2023 年にのみ、その 2019 年開業区間（西谷 – 羽沢横浜国大）は
-      2022 年にのみ現れます。</p>
-    <p><b>対象</b><br>その年の平日通勤、同じ出発地・目的地の組で年 5 人日以上、
-      両端の直線距離 60 km 未満。鉄道経路が 70 km を超え、かつ直線距離の 2 倍以上に
-      膨らむ移動は、鉄道で行く経路ではないとみなして除きます
-      （東京湾をまたぐ移動など。全流量の 0.14%）。</p>
-    <p><b>メッシュ処理</b><br>右上で 2 通り切り替えられます。
-      <b>膨張あり</b>: 経路が通ったセルを 1 セル分膨張させ、内側の穴を埋め、
-      最大連結成分のみ。<b>膨張なし</b>: 膨張も穴埋めもせず、通ったセルそのものの
-      最大連結成分のみ。経路の幅は 1–2 セルなので 1 セル膨張させると幅がほぼ 3 倍になり、
-      面積は中央値で 2 倍あまりに増えます（膨張なしは膨張ありの中央値 48%）。
-      膨張は本来ばらけた断片（中央値 10 個）をつなぐためのものですが、
-      その分、誰も通っていないセルまで流域に含めます。</p>
-    <p><b>時間の条件</b><br>この路線が無いと遠回りになる移動に限定
-      （モデル上の一般化距離で 1,000 m 超、時速 36 km 換算で約 100 秒）。</p>
-    <p><b>重心の読み方</b><br>純流入は 1 km メッシュごとに積みますが、
-      <b>読むときは半径 1.4 km の円</b>で足し合わせます。メッシュの切れ目は
-      国土基準の格子にすぎず、業務地区が 1 つの升に収まるか複数に割れるかは
-      運次第だからです。円の中の流動は打ち消し合うため、値は<b>円の外から入ってくる
-      超過分</b>です。第 2 重心は第 1 から 3.5 km 以上離れた最良の円です。
-      円は半径 1.6 km 内の<b>いちばん大きな駅</b>の名で呼び、
-      ①乗換駅（乗り入れ路線数が最多）→ ②社名を冠していないほう → ③駅規模（1.5 倍以上の差があるときだけ）
-      → ④そのメッシュの工作地人口 → ⑤鉄道網での中心性 の順で決めます。
-      カーソルを合わせると円内の全駅名が出ます。</p>
-    <p><b>シェアの分母</b><br>面積は首都圏の 1 km メッシュ全体、駅は首都圏の全駅、
-      人流量は首都圏の平日通勤の合計です。人流量は携帯位置情報パネルの平日 1 年分の
-      延べ人日で実人数ではないため、絶対値ではなく割合のみを示しています。</p>
-    <p><b>読むときの注意</b><br>経路は<b>全行程</b>を数えるため、長距離の移動は流域を
-      反対側へ引き伸ばします。長い路線ほど割合が高くなりやすく、しきい値を上げると
-      短い路線の流域が系統的に小さくなります。長さの違う路線を比べるときは
-      複数のしきい値で。</p>
-    <p>直通運転は原則として考慮せず、乗換 1 回として扱います。新幹線は対象外。
-      駅は路線ごとのホームを持つ「駅」として扱い、路線を取り除いた場合は
-      残る路線のホームへ移ります。並行路線に完全に代替される路線は
-      その年の一覧から除いています。同じ列車が直通する区間が別名で登録されている場合は
-      1 本に統合しています（東急・相鉄新横浜線、北総線・成田空港線など）。</p>
-    <p><b>データ</b><br>GPS: Agoop 社 ポイント型流動人口データ 2022–2023。路線: 国土数値情報 N02。
-      メッシュ: 総務省統計局 標準地域メッシュ 1 km。&copy; 2026 鄭 軼璇（東京科学大学）。</p>
+      <span class="cite">Y. Y. Zheng, "Rail line catchment areas of the Tokyo metropolitan rail network," interactive map, Institute of Science Tokyo, 2026. [Online]. Available: https://belief12345679.github.io/tokyo-rail-catchment/</span>
+      データ: Agoop 社（GPS、再配布不可。本ページは集計済みメッシュのみ）、国土数値情報 N02（路線）、
+      総務省統計局（1 km メッシュ）。&copy; 2026 鄭 軼璇。</p>
     </div>
-  </div>
+</div>
 </div>
 
 <script src="payload.js"></script>
@@ -332,31 +299,85 @@ var T = {
 };
 function t(){ return T[lang]; }
 
-// English names for lines and stations. Falls back to the Japanese display
-// name, which is visible rather than silent. Extend as needed.
+// English names for every line and every centre station in the payload.
+// Lines are keyed by the Japanese stats key; stations by the bare station name.
 var EN_LINE = {
-  "東急・相鉄新横浜線": "Shin-Yokohama Line", "相鉄新横浜線": "Shin-Yokohama Line",
-  "相鉄本線": "Sotetsu Main Line", "東横線": "Tokyu Toyoko Line", "東海道線": "Tokaido Line",
-  "田園都市線": "Den-en-toshi Line", "江ノ島線": "Odakyu Enoshima Line", "横浜線": "Yokohama Line",
-  "横浜市営地下鉄ブルーライン": "Yokohama Blue Line", "小田原線": "Odakyu Odawara Line",
-  "8号線有楽町線": "Yurakucho Line", "山手線": "Yamanote Line", "久留里線": "Kururi Line",
-  "東金線": "Togane Line", "6号線三田線": "Mita Line", "南武線": "Nambu Line",
-  "目黒線": "Tokyu Meguro Line", "横須賀線": "Yokosuka Line", "こどもの国線": "Kodomonokuni Line",
-  "高崎線": "Takasaki Line", "八高線": "Hachiko Line", "11号線半蔵門線": "Hanzomon Line",
-  "常磐新線": "Tsukuba Express", "外房線": "Sotobo Line", "5号線東西線": "Tozai Line",
-  "北総線・成田空港線": "Hokuso Line", "青梅線": "Ome Line", "国分寺線": "Kokubunji Line",
-  "越生線": "Ogose Line", "多摩都市モノレール線": "Tama Monorail", "久里浜線": "Kurihama Line",
-  "2号線日比谷線": "Hibiya Line", "高尾線": "Takao Line", "相鉄いずみ野線": "Sotetsu Izumino Line",
-  "みなとみらい21線": "Minatomirai Line", "大井町線": "Tokyu Oimachi Line",
-  "京浜東北線": "Keihin-Tohoku Line", "根岸線": "Negishi Line", "4号線": "Marunouchi Line",
-  "相模線": "Sagami Line"
+  "10号線新宿線":"Toei Shinjuku Line","11号線半蔵門線":"Hanzomon Line","12号線大江戸線":"Oedo Line",
+  "13号線副都心線":"Fukutoshin Line","1号線浅草線":"Asakusa Line","2号線":"Yokohama Blue Line (Line 2)",
+  "2号線日比谷線":"Hibiya Line","3号線銀座線":"Ginza Line","4号線":"Yokohama Green Line",
+  "4号線丸ノ内線":"Marunouchi Line","5号線東西線":"Tozai Line","6号線三田線":"Mita Line",
+  "7号線南北線":"Namboku Line","8号線有楽町線":"Yurakucho Line","9号線千代田線":"Chiyoda Line",
+  "いすみ線":"Isumi Line","こどもの国線":"Kodomonokuni Line","みなとみらい21線":"Minatomirai Line",
+  "ケーブルカー":"Cable Car","ディズニーリゾートライン":"Disney Resort Line","ユーカリが丘線":"Yukarigaoka Line",
+  "世田谷線":"Tokyu Setagaya Line","中央線":"Chuo Line","久留里線":"Kururi Line","久里浜線":"Keikyu Kurihama Line",
+  "亀戸線":"Tobu Kameido Line","五日市線":"Itsukaichi Line","井の頭線":"Keio Inokashira Line",
+  "京急大師線":"Keikyu Daishi Line","京急本線":"Keikyu Main Line","京成本線":"Keisei Main Line",
+  "京王線":"Keio Line","京葉線":"Keiyo Line","伊勢崎線":"Tobu Skytree (Isesaki) Line","伊奈線":"New Shuttle (Ina Line)",
+  "八高線":"Hachiko Line","内房線":"Uchibo Line","北総線・成田空港線":"Hokuso / Narita Sky Access Line",
+  "千原線":"Keisei Chihara Line","千葉線":"Keisei Chiba Line","千葉都市モノレール1号線":"Chiba Monorail Line 1",
+  "南武線":"Nambu Line","国分寺線":"Seibu Kokubunji Line","埼玉高速鉄道線":"Saitama Rapid Railway Line",
+  "外房線":"Sotobo Line","多摩川線":"Seibu Tamagawa Line","多摩湖線":"Seibu Tamako Line","多摩線":"Odakyu Tama Line",
+  "多摩都市モノレール線":"Tama Monorail","大井町線":"Tokyu Oimachi Line","大雄山線":"Daiyuzan Line",
+  "小湊鐵道線":"Kominato Railway","小田原線":"Odakyu Odawara Line","山口線":"Seibu Yamaguchi Line",
+  "山手線":"Yamanote Line","川越線":"Kawagoe Line","常磐新線":"Tsukuba Express","常磐線":"Joban Line",
+  "御殿場線":"Gotemba Line","成田線":"Narita Line","押上線":"Keisei Oshiage Line","拝島線":"Seibu Haijima Line",
+  "新京成線":"Shin-Keisei Line","新宿線":"Seibu Shinjuku Line","日光線":"Tobu Nikko Line",
+  "日暮里・舎人ライナー":"Nippori-Toneri Liner","東上本線":"Tobu Tojo Line","東京モノレール羽田線":"Tokyo Monorail",
+  "東京臨海新交通臨海線":"Yurikamome","東北線":"Tohoku Line (Utsunomiya Line)","東急多摩川線":"Tokyu Tamagawa Line",
+  "東成田線・芝山鉄道線":"Higashi-Narita / Shibayama Line","東横線":"Tokyu Toyoko Line","東武大師線":"Tobu Daishi Line",
+  "東海道線":"Tokaido Line","東葉高速線":"Toyo Rapid Line","東金線":"Togane Line","根岸線":"Negishi Line",
+  "横浜市営地下鉄ブルーライン":"Yokohama Blue Line","横浜線":"Yokohama Line","横須賀線":"Yokosuka Line",
+  "武蔵野線":"Musashino Line","江の島線":"Shonan Monorail","江ノ島線":"Odakyu Enoshima Line",
+  "江ノ島電鉄線":"Enoden Line","池上線":"Tokyu Ikegami Line","池袋線":"Seibu Ikebukuro Line",
+  "流山線":"Ryutetsu Nagareyama Line","狭山線":"Seibu Sayama Line","田園都市線":"Tokyu Den-en-toshi Line",
+  "目黒線":"Tokyu Meguro Line","相模原線":"Keio Sagamihara Line","相模線":"Sagami Line",
+  "相鉄いずみ野線":"Sotetsu Izumino Line","相鉄新横浜線（2019 年開業区間）":"Sotetsu Shin-Yokohama Line (2019 section)",
+  "相鉄本線":"Sotetsu Main Line","秩父本線":"Chichibu Main Line","空港線":"Keikyu Airport Line","総武線":"Sobu Line",
+  "臨海副都心線":"Rinkai Line","荒川線":"Toden Arakawa Line","西武園線":"Seibu-en Line","西武秩父線":"Seibu Chichibu Line",
+  "赤羽線":"Akabane Line","越生線":"Tobu Ogose Line","逗子線":"Keikyu Zushi Line","野田線":"Tobu Urban Park (Noda) Line",
+  "金沢シーサイドライン":"Kanazawa Seaside Line","金町線":"Keisei Kanamachi Line","鉄道線":"Hakone Tozan Railway",
+  "銚子電気鉄道線":"Choshi Electric Railway","鋼索線":"Hakone Tozan Cable Car","青梅線":"Ome Line","高尾線":"Keio Takao Line",
+  "高尾鋼索線":"Takao Cable Car","高崎線":"Takasaki Line","鶴見線":"Tsurumi Line","東急・相鉄新横浜線":"Shin-Yokohama Line"
 };
+var EN_STA = {
+  "東京":"Tokyo","新橋":"Shimbashi","錦糸町":"Kinshicho","新宿":"Shinjuku","渋谷":"Shibuya","池袋":"Ikebukuro",
+  "品川":"Shinagawa","千葉":"Chiba","海浜幕張":"Kaihin-Makuhari","浜松町":"Hamamatsucho","センター南":"Center-Minami",
+  "鴨居":"Kamoi","新横浜":"Shin-Yokohama","門前仲町":"Monzen-Nakacho","東陽町":"Toyocho","秋葉原":"Akihabara",
+  "溜池山王":"Tameike-Sanno","市ヶ谷":"Ichigaya","東池袋":"Higashi-Ikebukuro","日比谷":"Hibiya","国吉":"Kuniyoshi",
+  "大多喜":"Otaki","勝浦":"Katsuura","南町田グランベリーパーク":"Minami-Machida Grandberry Park","青葉台":"Aobadai",
+  "桜木町":"Sakuragicho","羽田空港第1・第2ターミナル":"Haneda Airport T1/T2","ユーカリが丘":"Yukarigaoka","成田":"Narita",
+  "村上":"Murakami","下北沢":"Shimo-Kitazawa","木更津":"Kisarazu","上総松丘":"Kazusa-Matsuoka","姉ヶ崎":"Anegasaki",
+  "横須賀中央":"Yokosuka-Chuo","久里浜":"Kurihama","押上":"Oshiage","秋川":"Akigawa","拝島":"Haijima",
+  "新宿三丁目":"Shinjuku-Sanchome","小島新田":"Kojima-Shinden","川崎":"Kawasaki","二俣新町":"Futamata-Shimmachi",
+  "丸山":"Maruyama","大宮":"Omiya","北八王子":"Kita-Hachioji","箱根ヶ崎":"Hakonegasaki","松久":"Matsuhisa",
+  "船橋":"Funabashi","分倍河原":"Bubaigawara","武蔵小杉":"Musashi-Kosugi","国分寺":"Kokubunji","武蔵境":"Musashi-Sakai",
+  "立川":"Tachikawa","東小金井":"Higashi-Koganei","赤坂見附":"Akasaka-Mitsuke","多摩センター":"Tama Center",
+  "新百合ヶ丘":"Shin-Yurigaoka","大雄山":"Daiyuzan","鴨宮":"Kamonomiya","上総牛久":"Kazusa-Ushiku","多摩湖":"Tamako",
+  "玉川上水":"Tamagawa-Josui","西川越":"Nishi-Kawagoe","栢山":"Kayama","富水":"Tomizu","空港第2ビル":"Narita Airport T2",
+  "天王台":"Tennodai","馬喰横山":"Bakuro-Yokoyama","小川":"Ogawa","松戸":"Matsudo","永田":"Nagata","与野":"Yono",
+  "杉戸高野台":"Sugito-Takanodai","御徒町":"Okachimachi","天空橋":"Tenkubashi","蒲田":"Kamata","新川崎":"Shin-Kawasaki",
+  "芝山千代田":"Shibayama-Chiyoda","八日市場":"Yokaichiba","横浜":"Yokohama","北千住":"Kita-Senju","江北":"Kohoku",
+  "大師前":"Daishimae","三田":"Mita","八街":"Yachimata","市大医学部":"Shidai-Igakubu","大船":"Ofuna",
+  "七里ヶ浜":"Shichirigahama","湘南台":"Shonandai","藤沢":"Fujisawa","鎌倉":"Kamakura","目黒":"Meguro",
+  "流山おおたかの森":"Nagareyama-Otakanomori","所沢":"Tokorozawa","武蔵藤沢":"Musashi-Fujisawa","調布":"Chofu",
+  "倉見":"Kurami","平塚":"Hiratsuka","南橋本":"Minami-Hashimoto","立場":"Tateba","三ツ沢上町":"Mitsuzawa-Kamicho",
+  "ソシオ流通センター":"Socio Ryutsu Center","小前田":"Omaeda","持田":"Mochida","和光市":"Wakoshi","国立":"Kunitachi",
+  "武蔵高萩":"Musashi-Takahagi","西吾野":"Nishi-Agano","影森":"Kagemori","川角":"Kawakado","豊田":"Toyoda",
+  "つきのわ":"Tsukinowa","柏":"Kashiwa","京成高砂":"Keisei-Takasago","京成立石":"Keisei-Tateishi","青砥":"Aoto",
+  "強羅":"Gora","風祭":"Kazamatsuri","銚子":"Choshi","外川":"Tokawa","西武立川":"Seibu-Tachikawa","八王子":"Hachioji",
+  "鶴見小野":"Tsurumi-Ono","関内":"Kannai"
+};
+
 function disp(n){
   var s = P.stats[n];
-  if (lang === "en" && (s.display_en || EN_LINE[n] || EN_LINE[s.display])) {
-    return s.display_en || EN_LINE[n] || EN_LINE[s.display];
-  }
+  if (lang === "en") return s.display_en || EN_LINE[n] || EN_LINE[s.display] || s.display;
   return s.display;
+}
+function enSta(s){
+  var m = s.match(/^(.*?)周辺$/);
+  var base = m ? m[1] : s;
+  var en = EN_STA[base] || base;
+  return m ? "around " + en : en;
 }
 
 function tag(){
@@ -497,8 +518,10 @@ function detail(){
       L.sta_all(fmt(P.n_sta), d.spct.toFixed(1)) + "</span></div>" +
     (centresOf() ? "<p class='cap' style='margin-top:9px'>" + L.cap_centre + "</p>" +
       centresOf().map(function(c, i){
-        var nm = (lang === "en" && (c.lab_en || c.sta_en)) ? (c.lab_en || c.sta_en) : (c.lab || c.sta);
-        return "<div class='foot' title='" + (c.ros || c.sta).replace(/'/g, "") +
+        var nm = (lang === "en") ? (c.lab_en || enSta(c.lab || c.sta)) : (c.lab || c.sta);
+        var ttl = (c.ros || c.sta);
+        if (lang === "en") ttl = ttl.split(/[、,・ ]+/).map(enSta).join(", ");
+        return "<div class='foot' title='" + ttl.replace(/'/g, "") +
                "'><span>" + L.centre_rank(i) + " · " + nm +
                (c.n > 1 ? " <span style=\'opacity:.55\'>" + L.n_sta(c.n) + "</span>" : "") +
                "</span><span>" + fmt(c.net) + L.person_days +
