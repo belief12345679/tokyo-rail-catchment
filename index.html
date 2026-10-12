@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="ja" data-lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rail Line Catchment Areas of the Tokyo Metropolitan Area / 首都圏 路線流域</title>
+<meta name="description" content="Interactive map of the rail line catchment area (RLCA) of every railway line in the Tokyo metropolitan area, 2022 and 2023, computed from smartphone GPS commuting data on a 1 km grid.">
+<meta property="og:title" content="Rail Line Catchment Areas of the Tokyo Metropolitan Area">
+<meta property="og:description" content="Which 1 km grids does each railway line serve? Interactive map, 2022 vs 2023, before and after the Shin-Yokohama Line opened.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#f6f7f9; --card:#ffffff; --ink:#14181c; --ink2:#535c66; --ink3:#7d868f;
+  --rule:#dadfe5; --rule-soft:#e9edf1; --accent:#1f6fb4; --warm:#c0392b;
+  --sel:#eef4fa;
+  --b500:#a9cdec; --b1000:#6ba3d6; --b3000:#6ba3d6;
+  --net:#c6ccd4; --land:#eceef1;
+  --serif:"Noto Serif SC",Songti SC,Georgia,serif;
+  --sans:"Noto Sans SC","Hiragino Sans",-apple-system,"Helvetica Neue",sans-serif;
+  --mono:"IBM Plex Mono",SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0f1317; --card:#161b21; --ink:#e7ebef; --ink2:#a5b0ba; --ink3:#7b858f;
+  --rule:#28303a; --rule-soft:#1c232b; --accent:#79b0e0; --warm:#e0796a;
+  --sel:#1b2b3a; --b500:#2b4a66; --b1000:#3f6f9c; --b3000:#3f6f9c;
+  --net:#3a434e; --land:#1b2128;
+}}
+:root[data-theme="dark"]{
+  --paper:#0f1317; --card:#161b21; --ink:#e7ebef; --ink2:#a5b0ba; --ink3:#7b858f;
+  --rule:#28303a; --rule-soft:#1c232b; --accent:#79b0e0; --warm:#e0796a;
+  --sel:#1b2b3a; --b500:#2b4a66; --b1000:#3f6f9c; --b3000:#3f6f9c;
+  --net:#3a434e; --land:#1b2128;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-weight:300;font-size:14px;line-height:1.6}
+.app{display:grid;grid-template-columns:324px 1fr;grid-template-rows:auto 1fr auto;
+  height:100vh;min-height:560px}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto auto 1fr auto;height:auto}
+  aside{grid-column:1;grid-row:2;border-right:0}
+  main{grid-column:1;grid-row:3}
+  .note{grid-column:1;grid-row:4;columns:1}
+}
+
+.bar{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 20px;
+  padding:13px 20px;border-bottom:1px solid var(--rule);background:var(--card)}
+.bar h1{font-family:var(--serif);font-weight:700;font-size:19px;margin:0;letter-spacing:.01em}
+.bar .tag{font-family:var(--mono);font-size:11.5px;color:var(--ink3);letter-spacing:.05em}
+.spacer{flex:1}
+.legend{display:flex;gap:13px;align-items:center;font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.legend i{display:inline-block;width:12px;height:9px;margin-right:5px;vertical-align:-1px;
+  border:1px solid rgba(0,0,0,.18)}
+
+aside{grid-column:1;grid-row:2/4;border-right:1px solid var(--rule);
+  background:var(--card);display:flex;flex-direction:column;min-height:0}
+.search{padding:10px 14px;border-bottom:1px solid var(--rule)}
+.search input{width:100%;padding:7px 10px;font-family:var(--sans);font-size:13px;
+  border:1px solid var(--rule);border-radius:3px;background:var(--paper);color:var(--ink)}
+.search input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+
+.detail{padding:13px 14px;border-bottom:1px solid var(--rule)}
+.detail h2{font-family:var(--serif);font-size:16px;font-weight:600;margin:0 0 2px;line-height:1.3}
+.detail .sub{font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin:0 0 11px}
+.detail .cap{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink3);
+  margin:0 0 5px;text-transform:uppercase}
+.mx{border-collapse:separate;border-spacing:3px 3px;width:100%;font-family:var(--mono);
+  font-size:11.5px;font-variant-numeric:tabular-nums}
+.mx th{font-weight:500;color:var(--ink3);font-size:10px;padding:0 0 2px;text-align:right}
+.mx th.rh{text-align:left}
+.mx td{padding:0}
+.mx button{width:100%;border:1px solid transparent;background:var(--rule-soft);
+  color:var(--ink2);font-family:var(--mono);font-size:11.5px;padding:5px 7px;
+  cursor:pointer;text-align:right;border-radius:2px}
+.mx button:hover{border-color:var(--rule)}
+.mx button[aria-pressed="true"]{background:var(--sel);border-color:var(--accent);
+  color:var(--ink);font-weight:500}
+.mx button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.mx .rh{color:var(--ink3);font-size:10px;white-space:nowrap;text-align:left}
+.detail .foot{display:flex;justify-content:space-between;gap:10px;margin-top:9px;
+  font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+.detail .warn{margin:8px 0 0;font-size:10.5px;color:var(--warm);line-height:1.5}
+
+.years{display:flex;gap:2px;font-family:var(--mono);font-size:11.5px;
+  border:1px solid var(--rule);border-radius:4px;padding:1px;flex:none}
+.years button{background:none;border:0;color:var(--ink3);cursor:pointer;
+  padding:3px 11px;border-radius:3px;font:inherit;letter-spacing:.04em}
+.years button:hover{color:var(--ink2)}
+.years button[aria-pressed="true"]{background:var(--sel);color:var(--accent)}
+.years button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.sorts{display:flex;padding:8px 14px 0;font-family:var(--mono);font-size:11px}
+.sorts button{background:none;border:0;color:var(--ink3);cursor:pointer;padding:3px 8px 6px;
+  border-bottom:2px solid transparent}
+.sorts button[aria-pressed="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.list{overflow-y:auto;flex:1;min-height:0;padding:6px 0 14px}
+@media (max-width:860px){.list{max-height:230px}}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline;
+  padding:6px 14px;cursor:pointer;border-left:3px solid transparent}
+.row:hover{background:var(--rule-soft)}
+.row[aria-selected="true"]{background:var(--sel);border-left-color:var(--warm)}
+.row .nm{font-size:13px;color:var(--ink)}
+.row .v{font-family:var(--mono);font-size:11.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.row .sub{grid-column:1/-1;font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+.bar-mini{grid-column:1/-1;height:3px;background:var(--rule-soft);border-radius:2px;overflow:hidden}
+.bar-mini span{display:block;height:100%;background:var(--b1000)}
+.note{grid-column:2;grid-row:3;padding:11px 18px 13px;background:var(--card);
+  border-top:1px solid var(--rule);font-family:var(--mono);
+  font-size:10px;color:var(--ink3);line-height:1.6;
+  columns:236px;column-gap:26px;max-height:30vh;overflow-y:auto}
+.note p{margin:0 0 8px;break-inside:avoid}
+.note p:last-child{margin-bottom:0}
+.note b{color:var(--ink2);font-weight:500}
+.note a{color:var(--accent);text-decoration:none}
+.note a:hover{text-decoration:underline}
+.note .cite{font-family:var(--mono);background:var(--rule-soft);padding:6px 8px;border-radius:3px;
+  display:block;white-space:pre-wrap;color:var(--ink2);margin:4px 0 0}
+[data-lang="ja"] .en, [data-lang="en"] .ja { display:none }
+
+main{grid-column:2;grid-row:2;position:relative;min-height:0;background:var(--paper)}
+canvas{display:block;width:100%;height:100%;cursor:crosshair}
+@media (max-width:860px){main{height:70vh}}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);
+  font-family:var(--mono);font-size:11px;padding:3px 7px;border-radius:3px;
+  transform:translate(10px,-50%);opacity:0;transition:opacity .09s}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="bar">
+    <h1 id="h1"></h1>
+    <span class="tag" id="tag"></span>
+    <span class="spacer"></span>
+    <div class="years" id="lang">
+      <button data-l="ja" aria-pressed="true">日本語</button><button data-l="en" aria-pressed="false">English</button>
+    </div>
+    <div class="years" id="years"></div>
+    <div class="years" id="variants"></div>
+    <div class="legend" id="lg"></div>
+  </div>
+
+  <aside>
+    <div class="search"><input id="q" type="search" autocomplete="off"></div>
+    <div class="detail" id="detail"></div>
+    <div class="sorts" id="sorts"></div>
+    <div class="list" id="list"></div>
+  </aside>
+
+  <main>
+    <canvas id="cv"></canvas>
+    <div class="tip" id="tip"></div>
+  </main>
+
+  <div class="note">
+    <!-- ======================= English ======================= -->
+    <div class="en">
+    <p><b>About this map</b><br>Each railway line in the Tokyo metropolitan area is shown with its
+      <b>rail line catchment area (RLCA)</b>: the set of 1 km grid cells in which the commuters
+      who use that line live or work. A commuter is counted as a user of a line when the line
+      carries at least a given share (1%, 10% or 30%, switchable in the table) of their shortest
+      railway route. One cell is 1 km&sup2;, so the area equals the cell count.
+      Companion page of: Y.&nbsp;Y. Zheng, E. Viegas, H. Takayasu and M. Takayasu, &ldquo;A novel
+      approach to assess the long-term changes to population demographics due to large
+      infrastructure projects: The Shin-Yokohama Line case in Japan,&rdquo; 2026.</p>
+    <p><b>How to cite</b><br>
+      <span class="cite">Y. Y. Zheng, "Rail line catchment areas of the Tokyo metropolitan rail network," interactive map, Institute of Science Tokyo, 2026. [Online]. Available: https://YOUR-USERNAME.github.io/tokyo-rail-catchment/</span>
+      Code and data: see the repository linked above. Underlying GPS data are provided by Agoop Corp.\ and
+      cannot be redistributed; the page ships only aggregated 1 km cell masks and line statistics.</p>
+    <p><b>Years</b><br>2022 / 2023 switches the network <b>and</b> the commuters together:
+      2022 is the network before the Shin-Yokohama Line opened (18 March 2023) with 2022
+      commuting data; 2023 is the network after the opening with 2023 data. It is not the same
+      people routed on two networks. The Shin-Yokohama Line appears only in 2023; its 2019
+      section (Nishiya&ndash;Hazawa Yokohama-kokudai) appears only in 2022.</p>
+    <p><b>Commuters included</b><br>Weekday commutes of that year, origin&ndash;destination pairs with
+      at least 5 person-days per year, straight-line distance under 60 km. Trips whose rail route
+      exceeds 70 km and more than twice the straight-line distance are treated as non-rail and
+      dropped (e.g. across Tokyo Bay; 0.14% of all flow).</p>
+    <p><b>Cell processing</b><br>Two variants. <b>Dilated</b>: cells on the routes are grown by one
+      cell, interior holes filled, largest connected component kept. <b>Tight</b>: no growth and
+      no filling, largest connected component of the cells actually traversed. Routes are 1&ndash;2
+      cells wide, so dilation roughly triples the width and doubles the median area (tight is 48%
+      of dilated at the median). Dilation joins fragments (median 10 per line) at the cost of
+      including cells nobody traverses.</p>
+    <p><b>Time criterion</b><br>Only trips that would become longer without the line are counted
+      (more than 1,000 m of generalised distance in the routing model, about 100 s at 36 km/h).</p>
+    <p><b>Centres of flow</b><br>Net inflow is accumulated per 1 km cell but <b>read within a
+      1.4 km disc</b>, because the grid is a national reference grid and whether a business
+      district falls in one cell or several is accidental. Flows inside the disc cancel, so the
+      value is the <b>surplus entering from outside</b>. The second centre is the best disc at
+      least 3.5 km from the first. The disc is named after its <b>largest station</b> within a
+      1.6 km radius, chosen by: transfer station (most lines) &rarr; name without an operator
+      prefix &rarr; station size (only if the ratio exceeds 1.5) &rarr; workplace population of
+      the cell &rarr; network centrality. Hovering the name lists all stations covered.</p>
+    <p><b>Shares</b><br>Area share is over all 1 km cells of the region; station share over all
+      stations; flow share over all weekday commuting of the region. Flow is person-days from a
+      smartphone panel, not a head count, so only shares are shown.</p>
+    <p><b>Reading the map</b><br>Routes are counted over the <b>whole journey</b>, so long trips
+      stretch a catchment to the far side. Long lines reach a given share more easily; raising
+      the threshold shrinks short lines systematically. Compare lines of different length at
+      several thresholds.</p>
+    <p>Through services are treated as one transfer. Shinkansen is excluded. A station is a set of
+      platforms, one per line; when a line is removed its passengers move to the remaining
+      platforms. Lines entirely replaced by a parallel line (no trip becomes longer without them)
+      are omitted for that year. Sections registered under separate names but served by the same
+      through train are merged (e.g. T&#333;ky&#363;&ndash;S&#333;tetsu Shin-Yokohama Line,
+      Hokus&#333;&ndash;Narita Airport Line).</p>
+    <p><b>Data</b><br>GPS: Agoop Corp.\ point-type people flow data, 2022&ndash;2023. Rail network:
+      MLIT National Land Numerical Information N02. Grid: Statistics Bureau of Japan standard
+      1 km grid. &copy; 2026 Yixuan Y. Zheng, Institute of Science Tokyo.</p>
+    </div>
+
+    <!-- ======================= 日本語 ======================= -->
+    <div class="ja">
+    <p><b>このページについて</b><br>首都圏の各路線について、その路線を使う通勤者の
+      住む・働く 1 km メッシュの集合＝<b>路線流域（RLCA）</b>を示します。
+      通勤の最短経路のうち、この路線が全行程の一定割合以上（1%・10%・30%、表のボタンで切替）
+      を占める移動をその路線の利用者とみなします。1 メッシュ = 1 km&sup2; なので面積はメッシュ数です。
+      論文 Y.&nbsp;Y. Zheng, E. Viegas, H. Takayasu, M. Takayasu, &ldquo;A novel approach to assess
+      the long-term changes to population demographics due to large infrastructure projects:
+      The Shin-Yokohama Line case in Japan,&rdquo; 2026 の付属ページです。</p>
+    <p><b>引用</b><br>
+      <span class="cite">Y. Y. Zheng, "Rail line catchment areas of the Tokyo metropolitan rail network," interactive map, Institute of Science Tokyo, 2026. [Online]. Available: https://YOUR-USERNAME.github.io/tokyo-rail-catchment/</span>
+      元の GPS データは Agoop 社提供で再配布できません。本ページには 1 km メッシュ単位の
+      集計マスクと路線統計のみを含みます。</p>
+    <p><b>年の切り替え</b><br>右上の 2022 / 2023 は、路線網と通勤者を<b>同時に</b>切り替えます。
+      2022 は 2023-03-18 の新横浜線開業<b>前</b>の路線網に 2022 年の通勤データ、
+      2023 は開業後の路線網に 2023 年の通勤データ。
+      同じ人を二つの路線網で走らせた比較ではありません。
+      新横浜線は 2023 年にのみ、その 2019 年開業区間（西谷 – 羽沢横浜国大）は
+      2022 年にのみ現れます。</p>
+    <p><b>対象</b><br>その年の平日通勤、同じ出発地・目的地の組で年 5 人日以上、
+      両端の直線距離 60 km 未満。鉄道経路が 70 km を超え、かつ直線距離の 2 倍以上に
+      膨らむ移動は、鉄道で行く経路ではないとみなして除きます
+      （東京湾をまたぐ移動など。全流量の 0.14%）。</p>
+    <p><b>メッシュ処理</b><br>右上で 2 通り切り替えられます。
+      <b>膨張あり</b>: 経路が通ったセルを 1 セル分膨張させ、内側の穴を埋め、
+      最大連結成分のみ。<b>膨張なし</b>: 膨張も穴埋めもせず、通ったセルそのものの
+      最大連結成分のみ。経路の幅は 1–2 セルなので 1 セル膨張させると幅がほぼ 3 倍になり、
+      面積は中央値で 2 倍あまりに増えます（膨張なしは膨張ありの中央値 48%）。
+      膨張は本来ばらけた断片（中央値 10 個）をつなぐためのものですが、
+      その分、誰も通っていないセルまで流域に含めます。</p>
+    <p><b>時間の条件</b><br>この路線が無いと遠回りになる移動に限定
+      （モデル上の一般化距離で 1,000 m 超、時速 36 km 換算で約 100 秒）。</p>
+    <p><b>重心の読み方</b><br>純流入は 1 km メッシュごとに積みますが、
+      <b>読むときは半径 1.4 km の円</b>で足し合わせます。メッシュの切れ目は
+      国土基準の格子にすぎず、業務地区が 1 つの升に収まるか複数に割れるかは
+      運次第だからです。円の中の流動は打ち消し合うため、値は<b>円の外から入ってくる
+      超過分</b>です。第 2 重心は第 1 から 3.5 km 以上離れた最良の円です。
+      円は半径 1.6 km 内の<b>いちばん大きな駅</b>の名で呼び、
+      ①乗換駅（乗り入れ路線数が最多）→ ②社名を冠していないほう → ③駅規模（1.5 倍以上の差があるときだけ）
+      → ④そのメッシュの工作地人口 → ⑤鉄道網での中心性 の順で決めます。
+      カーソルを合わせると円内の全駅名が出ます。</p>
+    <p><b>シェアの分母</b><br>面積は首都圏の 1 km メッシュ全体、駅は首都圏の全駅、
+      人流量は首都圏の平日通勤の合計です。人流量は携帯位置情報パネルの平日 1 年分の
+      延べ人日で実人数ではないため、絶対値ではなく割合のみを示しています。</p>
+    <p><b>読むときの注意</b><br>経路は<b>全行程</b>を数えるため、長距離の移動は流域を
+      反対側へ引き伸ばします。長い路線ほど割合が高くなりやすく、しきい値を上げると
+      短い路線の流域が系統的に小さくなります。長さの違う路線を比べるときは
+      複数のしきい値で。</p>
+    <p>直通運転は原則として考慮せず、乗換 1 回として扱います。新幹線は対象外。
+      駅は路線ごとのホームを持つ「駅」として扱い、路線を取り除いた場合は
+      残る路線のホームへ移ります。並行路線に完全に代替される路線は
+      その年の一覧から除いています。同じ列車が直通する区間が別名で登録されている場合は
+      1 本に統合しています（東急・相鉄新横浜線、北総線・成田空港線など）。</p>
+    <p><b>データ</b><br>GPS: Agoop 社 ポイント型流動人口データ 2022–2023。路線: 国土数値情報 N02。
+      メッシュ: 総務省統計局 標準地域メッシュ 1 km。&copy; 2026 鄭 軼璇（東京科学大学）。</p>
+    </div>
+  </div>
+</div>
+
+<script src="payload.js"></script>
+<script>
+(function(){
+"use strict";
+var P = window.PAYLOAD, G = P.grid, THR = P.thresholds, SH = P.shares;
+var YR = P.years || ["2023"];
+var VA = P.variants || ["dilated"];
+
+// ---------------------------------------------------------------- i18n
+var lang = (location.hash === "#en" || /^en/.test(navigator.language)) ? "en" : "ja";
+var T = {
+  ja: {
+    title: "首都圏 路線流域",
+    tag: function(y, n){ return y + " 年 平日通勤データ（出典 : Agoop 社）・ " + n + " 路線 ・ 解像度 1 km メッシュ（総務省統計局 標準地域メッシュ）"; },
+    search: "路線名で検索…",
+    variant: {dilated: "膨張あり", tight: "膨張なし"},
+    share: function(m){ return Math.round(parseFloat(m) * 100) + "% 以上"; },
+    year: function(y){ return y + " 年"; },
+    area_row: "流域面積 km&sup2;",
+    sub: function(km, apct, pct){ return km + " km ・ 面積シェア " + apct + "% ・ 人流量シェア " + pct + "%"; },
+    cap_share: "この路線が全行程に占める割合",
+    sta_in: function(n){ return "流域内の駅 " + n; },
+    sta_all: function(n, p){ return "全 " + n + " 駅の " + p + "%"; },
+    cap_centre: "流動の重心（純流入）",
+    centre_rank: function(i){ return i ? "第 2" : "第 1"; },
+    n_sta: function(n){ return n + " 駅"; },
+    person_days: " 人日",
+    from_tokyo: function(km){ return " ・ 東京駅から " + km + " km"; },
+    ess: function(n){ return "うち " + n + " 件は、この路線を取り除くと鉄道では到達できなくなる移動です。"; },
+    sorts: [["cells","流域面積"],["pct","流量シェア"],["km","路線長"],["name","名称"]],
+    row_sub: function(km, pct){ return km + " km ・ 全体の " + pct + "%"; },
+    none: "該当する路線がありません",
+    legend_basin: function(v, s){ return "流域（" + v + "） ・ この路線が行程の " + s; },
+    legend_centre: "流動の重心（第 1・第 2）"
+  },
+  en: {
+    title: "Rail Line Catchment Areas, Tokyo Metropolitan Area",
+    tag: function(y, n){ return y + " weekday commuting (source: Agoop Corp.) · " + n + " lines · 1 km grid (Statistics Bureau of Japan)"; },
+    search: "Search line…",
+    variant: {dilated: "Dilated", tight: "Tight"},
+    share: function(m){ return "≥ " + Math.round(parseFloat(m) * 100) + "%"; },
+    year: function(y){ return y; },
+    area_row: "Catchment km&sup2;",
+    sub: function(km, apct, pct){ return km + " km · area share " + apct + "% · flow share " + pct + "%"; },
+    cap_share: "Share of the journey on this line",
+    sta_in: function(n){ return "Stations in catchment " + n; },
+    sta_all: function(n, p){ return p + "% of " + n; },
+    cap_centre: "Centres of flow (net inflow)",
+    centre_rank: function(i){ return i ? "2nd" : "1st"; },
+    n_sta: function(n){ return n + " stations"; },
+    person_days: " person-days",
+    from_tokyo: function(km){ return " · " + km + " km from Tokyo Sta."; },
+    ess: function(n){ return n + " trips would become unreachable by rail without this line."; },
+    sorts: [["cells","Area"],["pct","Flow share"],["km","Length"],["name","Name"]],
+    row_sub: function(km, pct){ return km + " km · " + pct + "% of all"; },
+    none: "No matching line",
+    legend_basin: function(v, s){ return "Catchment (" + v.toLowerCase() + ") · line carries " + s + " of journey"; },
+    legend_centre: "Centres of flow (1st, 2nd)"
+  }
+};
+function t(){ return T[lang]; }
+
+// English names for lines and stations. Falls back to the Japanese display
+// name, which is visible rather than silent. Extend as needed.
+var EN_LINE = {
+  "東急・相鉄新横浜線": "Shin-Yokohama Line", "相鉄新横浜線": "Shin-Yokohama Line",
+  "相鉄本線": "Sotetsu Main Line", "東横線": "Tokyu Toyoko Line", "東海道線": "Tokaido Line",
+  "田園都市線": "Den-en-toshi Line", "江ノ島線": "Odakyu Enoshima Line", "横浜線": "Yokohama Line",
+  "横浜市営地下鉄ブルーライン": "Yokohama Blue Line", "小田原線": "Odakyu Odawara Line",
+  "8号線有楽町線": "Yurakucho Line", "山手線": "Yamanote Line", "久留里線": "Kururi Line",
+  "東金線": "Togane Line", "6号線三田線": "Mita Line", "南武線": "Nambu Line",
+  "目黒線": "Tokyu Meguro Line", "横須賀線": "Yokosuka Line", "こどもの国線": "Kodomonokuni Line",
+  "高崎線": "Takasaki Line", "八高線": "Hachiko Line", "11号線半蔵門線": "Hanzomon Line",
+  "常磐新線": "Tsukuba Express", "外房線": "Sotobo Line", "5号線東西線": "Tozai Line",
+  "北総線・成田空港線": "Hokuso Line", "青梅線": "Ome Line", "国分寺線": "Kokubunji Line",
+  "越生線": "Ogose Line", "多摩都市モノレール線": "Tama Monorail", "久里浜線": "Kurihama Line",
+  "2号線日比谷線": "Hibiya Line", "高尾線": "Takao Line", "相鉄いずみ野線": "Sotetsu Izumino Line",
+  "みなとみらい21線": "Minatomirai Line", "大井町線": "Tokyu Oimachi Line",
+  "京浜東北線": "Keihin-Tohoku Line", "根岸線": "Negishi Line", "4号線": "Marunouchi Line",
+  "相模線": "Sagami Line"
+};
+function disp(n){
+  var s = P.stats[n];
+  if (lang === "en" && (s.display_en || EN_LINE[n] || EN_LINE[s.display])) {
+    return s.display_en || EN_LINE[n] || EN_LINE[s.display];
+  }
+  return s.display;
+}
+
+function tag(){
+  var n = Object.keys(P.stats).filter(function(x){ return has(x, yr); }).length;
+  document.getElementById("tag").innerHTML = t().tag(yr, n);
+  document.getElementById("h1").textContent = t().title;
+  document.getElementById("q").placeholder = t().search;
+  document.documentElement.setAttribute("data-lang", lang);
+  document.documentElement.lang = lang;
+}
+
+var g = THR[0];
+var yr = YR[YR.length - 1];
+var va = VA[0];
+var f = (SH.indexOf("0.1") >= 0 ? "0.1" : SH[0]);
+var sort = "cells";
+var sel = P.stats["相鉄新横浜線"] ? "相鉄新横浜線" : Object.keys(P.stats)[0];
+function vk(y, a, b){ return va + "|" + y + "|" + a + "|" + b; }
+function has(n, y){ return P.stats[n].years.indexOf(y) >= 0; }
+function stext(m){ return t().share(m); }
+function cur(n){ return P.stats[n].v[vk(yr, g, f)]; }
+
+var cache = {};
+function cells(line, y, gg, ff){
+  var k = line + "|" + va + "|" + y + "|" + gg + "|" + ff;
+  if (cache[k]) return cache[k];
+  var b64 = P.masks[k];
+  if (!b64) return (cache[k] = []);
+  var bin = atob(b64), n = G.nr * G.nc, out = [];
+  for (var i = 0; i < n; i++){
+    if ((bin.charCodeAt(i >> 3) >> (7 - (i & 7))) & 1) out.push(i);
+  }
+  return (cache[k] = out);
+}
+
+var cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+var V = {lo0:1e9, la0:1e9, lo1:-1e9, la1:-1e9};
+P.region.forEach(function(r){ r.forEach(function(p){
+  if(p[0]<V.lo0)V.lo0=p[0]; if(p[0]>V.lo1)V.lo1=p[0];
+  if(p[1]<V.la0)V.la0=p[1]; if(p[1]>V.la1)V.la1=p[1];
+}); });
+V.lo0-=.03; V.lo1+=.03; V.la0-=.03; V.la1+=.03;
+var COSL = Math.cos((V.la0+V.la1)/2 * Math.PI/180);
+var W=0, H=0, K=1, OX=0, OY=0;
+function fit(){
+  var dpr = window.devicePixelRatio || 1;
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  var dlo = V.lo1-V.lo0, dla = V.la1-V.la0;
+  K = Math.min(W/(dlo*COSL), H/dla);
+  OX = (W - dlo*COSL*K)/2; OY = (H - dla*K)/2;
+}
+function px(lo){ return OX + (lo-V.lo0)*COSL*K; }
+function py(la){ return OY + (V.la1-la)*K; }
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+function poly(rings, fill, stroke, lw){
+  ctx.beginPath();
+  rings.forEach(function(r){
+    r.forEach(function(p,i){ i ? ctx.lineTo(px(p[0]),py(p[1])) : ctx.moveTo(px(p[0]),py(p[1])); });
+    if (fill) ctx.closePath();
+  });
+  if (fill){ ctx.fillStyle = fill; ctx.fill("evenodd"); }
+  if (stroke){ ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
+}
+function drawCells(y, gg, ff, color){
+  var list = cells(sel, y, gg, ff);
+  if (!list.length) return;
+  var wpx = (1/80)*COSL*K, hpx = (1/120)*K;
+  ctx.fillStyle = color; ctx.beginPath();
+  for (var i=0;i<list.length;i++){
+    var r = (list[i]/G.nc)|0, c = list[i] % G.nc;
+    ctx.rect(px((G.c0+c)/80+100), py((G.r0+r)/120 + 1/120), wpx+.4, hpx+.4);
+  }
+  ctx.fill();
+}
+function strokeLines(names, color, lw){
+  ctx.lineWidth = lw; ctx.strokeStyle = color;
+  ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.beginPath();
+  names.forEach(function(nm){
+    (P.lines[nm] || []).forEach(function(s){
+      s.forEach(function(p,i){ i ? ctx.lineTo(px(p[0]),py(p[1])) : ctx.moveTo(px(p[0]),py(p[1])); });
+    });
+  });
+  ctx.stroke();
+}
+function render(){
+  fit();
+  ctx.clearRect(0,0,W,H);
+  poly(P.region, css("--land"), css("--ink3"), 0.7);
+  ctx.save(); ctx.globalAlpha=.55;
+  P.borders.forEach(function(b){ poly([b], null, css("--ink3"), 0.4); });
+  ctx.restore();
+  drawCells(yr, g, f, css("--b1000"));
+  strokeLines(Object.keys(P.lines).filter(function(n){ return n !== sel; }), css("--net"), .7);
+  strokeLines([sel], css("--warm"), 2.4);
+  drawCentres();
+  detail();
+}
+
+var R_MAX = 11, R_MIN = 2.6;
+function centresOf(){
+  var c = P.stats[sel] && P.stats[sel].centres;
+  return (c && c[yr] && c[yr].length) ? c[yr] : null;
+}
+function drawCentres(){
+  var cs = centresOf(); if (!cs) return;
+  var ref = P.net_ref || 1;
+  ctx.save();
+  ctx.globalAlpha = .7;
+  for (var i = 0; i < cs.length; i++){
+    var c = cs[i];
+    var r = Math.max(R_MIN, Math.min(R_MAX, R_MAX * Math.sqrt(c.net / ref)));
+    ctx.beginPath(); ctx.arc(px(c.lon), py(c.lat), r, 0, 6.2832);
+    ctx.fillStyle = "#ffe9a3"; ctx.fill();
+    ctx.lineWidth = 1; ctx.strokeStyle = "#8a6d1f"; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function fmt(n){ return n.toLocaleString("en-US"); }
+function detail(){
+  var s = P.stats[sel], d = cur(sel), L = t();
+  var head = "<tr><th class='rh'></th>" + SH.map(function(m){
+    return "<th>" + stext(m) + "</th>"; }).join("") + "</tr>";
+  var body = "<tr><td class='rh'>" + L.area_row + "</td>" + SH.map(function(m){
+      var c = s.v[vk(yr,g,m)];
+      return "<td><button data-g='"+g+"' data-f='"+m+"' aria-pressed='"+
+             (m===f)+"'>"+fmt(c ? c.cells : 0)+"</button></td>";
+    }).join("") + "</tr>";
+  document.getElementById("detail").innerHTML =
+    "<h2>" + disp(sel) + "</h2>" +
+    "<p class='sub'>" + L.sub(s.km.toFixed(1), d.apct.toFixed(1), d.pct.toFixed(2)) + "</p>" +
+    "<p class='cap'>" + L.cap_share + "</p>" +
+    "<table class='mx'>" + head + body + "</table>" +
+    "<div class='foot'><span>" + L.sta_in(fmt(d.sta)) + "</span><span>" +
+      L.sta_all(fmt(P.n_sta), d.spct.toFixed(1)) + "</span></div>" +
+    (centresOf() ? "<p class='cap' style='margin-top:9px'>" + L.cap_centre + "</p>" +
+      centresOf().map(function(c, i){
+        var nm = (lang === "en" && (c.lab_en || c.sta_en)) ? (c.lab_en || c.sta_en) : (c.lab || c.sta);
+        return "<div class='foot' title='" + (c.ros || c.sta).replace(/'/g, "") +
+               "'><span>" + L.centre_rank(i) + " · " + nm +
+               (c.n > 1 ? " <span style=\'opacity:.55\'>" + L.n_sta(c.n) + "</span>" : "") +
+               "</span><span>" + fmt(c.net) + L.person_days +
+               (c.km != null ? L.from_tokyo(c.km) : "") + "</span></div>";
+      }).join("") : "") +
+    (d.ess ? "<p class='warn'>" + L.ess(fmt(d.ess)) + "</p>" : "");
+}
+
+function variants(){
+  if (VA.length <= 1) return;
+  document.getElementById("variants").innerHTML = VA.map(function(v){
+    return "<button data-v='" + v + "' aria-pressed='" + (v === va) + "'>" +
+           (t().variant[v] || v) + "</button>";
+  }).join("");
+}
+if (VA.length > 1){
+  document.getElementById("variants").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b || b.dataset.v === va) return;
+    va = b.dataset.v;
+    cache = {};
+    document.getElementById("variants").querySelectorAll("button").forEach(function(x){
+      x.setAttribute("aria-pressed", x.dataset.v === va); });
+    legend(); list(); render();
+  });
+}
+
+function years(){
+  if (YR.length <= 1) return;
+  document.getElementById("years").innerHTML = YR.map(function(y){
+    return "<button data-y='" + y + "' aria-pressed='" + (y === yr) + "'>" + t().year(y) + "</button>";
+  }).join("");
+}
+if (YR.length > 1){
+  document.getElementById("years").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b || b.dataset.y === yr) return;
+    yr = b.dataset.y;
+    if (!has(sel, yr)){
+      var alt = Object.keys(P.stats).filter(function(n){ return has(n, yr); });
+      alt.sort(function(a, b2){
+        return P.stats[b2].v[vk(yr,g,f)].cells - P.stats[a].v[vk(yr,g,f)].cells; });
+      sel = alt[0];
+    }
+    document.getElementById("years").querySelectorAll("button").forEach(function(x){
+      x.setAttribute("aria-pressed", x.dataset.y === yr); });
+    tag(); legend(); list(); render();
+  });
+}
+
+function sorts(){
+  document.getElementById("sorts").innerHTML = t().sorts.map(function(s){
+    return "<button data-s='"+s[0]+"' aria-pressed='"+(s[0]===sort)+"'>"+s[1]+"</button>";
+  }).join("");
+}
+function key(n){
+  var s = P.stats[n], c = s.v[vk(yr,g,f)];
+  if (sort === "name") return disp(n);
+  if (sort === "km") return -s.km;
+  return -(sort === "cells" ? c.cells : c.pct);
+}
+function list(){
+  var qv = document.getElementById("q").value.trim().toLowerCase();
+  var names = Object.keys(P.stats).filter(function(n){
+    if (!has(n, yr)) return false;
+    return !qv || n.toLowerCase().indexOf(qv) >= 0 ||
+           P.stats[n].display.toLowerCase().indexOf(qv) >= 0 ||
+           disp(n).toLowerCase().indexOf(qv) >= 0;
+  });
+  names.sort(function(a,b){ var ka=key(a), kb=key(b); return ka<kb?-1:ka>kb?1:0; });
+  var max = 1;
+  names.forEach(function(n){ max = Math.max(max, P.stats[n].v[vk(yr,g,f)].cells); });
+  document.getElementById("list").innerHTML = names.map(function(n){
+    var s = P.stats[n], c = s.v[vk(yr,g,f)];
+    return "<div class='row' role='option' tabindex='0' data-n='"+n.replace(/'/g,"&#39;")+"'"+
+      " aria-selected='"+(n===sel)+"'>"+
+      "<span class='nm'>"+disp(n)+"</span><span class='v'>"+fmt(c.cells)+"</span>"+
+      "<span class='sub'>"+t().row_sub(s.km.toFixed(0), c.pct.toFixed(2))+"</span>"+
+      "<span class='bar-mini'><span style='width:"+(100*c.cells/max).toFixed(1)+"%'></span></span>"+
+      "</div>";
+  }).join("") || "<div class='row'><span class='nm'>" + t().none + "</span></div>";
+}
+
+function legend(){
+  document.getElementById("lg").innerHTML =
+    "<span><i style='background:var(--b1000)'></i>" + t().legend_basin(t().variant[va] || va, stext(f)) + "</span>" +
+    (centresOf() ? "<span><i style='background:#ffe9a3'></i>" + t().legend_centre + "</span>" : "");
+}
+document.getElementById("detail").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if (!b) return;
+  g = b.dataset.g; f = b.dataset.f;
+  legend(); list(); render();
+});
+document.getElementById("sorts").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if (!b) return;
+  sort = b.dataset.s;
+  [].forEach.call(this.querySelectorAll("button"), function(x){
+    x.setAttribute("aria-pressed", String(x.dataset.s === sort));
+  });
+  list();
+});
+document.getElementById("lang").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if (!b || b.dataset.l === lang) return;
+  lang = b.dataset.l;
+  location.hash = lang === "en" ? "en" : "";
+  [].forEach.call(this.querySelectorAll("button"), function(x){
+    x.setAttribute("aria-pressed", String(x.dataset.l === lang));
+  });
+  all();
+});
+document.getElementById("q").addEventListener("input", list);
+function pick(n){ if (!P.stats[n] || !has(n, yr)) return; sel = n; list(); render(); }
+document.getElementById("list").addEventListener("click", function(e){
+  var r = e.target.closest(".row"); if (r && r.dataset.n) pick(r.dataset.n);
+});
+document.getElementById("list").addEventListener("keydown", function(e){
+  if (e.key !== "Enter" && e.key !== " ") return;
+  var r = e.target.closest(".row"); if (r && r.dataset.n){ e.preventDefault(); pick(r.dataset.n); }
+});
+
+function nearest(mx, my){
+  var best = null, bd = 12*12;
+  for (var nm in P.lines){
+    var segs = P.lines[nm];
+    for (var i=0;i<segs.length;i++){
+      var s = segs[i];
+      for (var j=0;j<s.length;j++){
+        var dx = px(s[j][0])-mx, dy = py(s[j][1])-my, d = dx*dx+dy*dy;
+        if (d < bd){ bd = d; best = nm; }
+      }
+    }
+  }
+  return best;
+}
+var tip = document.getElementById("tip"), raf = 0;
+cv.addEventListener("mousemove", function(e){
+  if (raf) return;
+  raf = requestAnimationFrame(function(){
+    raf = 0;
+    var r = cv.getBoundingClientRect();
+    var n = nearest(e.clientX-r.left, e.clientY-r.top);
+    if (n){ tip.textContent = P.stats[n] ? disp(n) : n;
+            tip.style.left = (e.clientX-r.left)+"px"; tip.style.top = (e.clientY-r.top)+"px";
+            tip.style.opacity = 1; cv.style.cursor = "pointer"; }
+    else { tip.style.opacity = 0; cv.style.cursor = "crosshair"; }
+  });
+});
+cv.addEventListener("mouseleave", function(){ tip.style.opacity = 0; });
+cv.addEventListener("click", function(e){
+  var r = cv.getBoundingClientRect();
+  var n = nearest(e.clientX-r.left, e.clientY-r.top);
+  if (n) pick(n);
+});
+window.addEventListener("resize", render);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+
+function all(){
+  [].forEach.call(document.getElementById("lang").querySelectorAll("button"), function(x){
+    x.setAttribute("aria-pressed", String(x.dataset.l === lang));
+  });
+  tag(); years(); variants(); sorts(); legend(); list(); render();
+}
+all();
+})();
+</script>
+</body>
+</html>
